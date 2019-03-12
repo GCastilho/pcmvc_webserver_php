@@ -19,16 +19,16 @@
 	function validateInputSignature($input) {
 		$data = json_encode($input->data);
 		$RA = $input->data->RA;
-		{
+		$apiKey = (function() use ($RA) {
 			$database = new DatabaseConnection();
 			$result = $database->query("SELECT Api_Key FROM Credentials WHERE RA = $RA;");
 			// get data of first row
 			if ($result->num_rows > 0 && $row = $result->fetch_assoc()) {
-				$apiKey = $row["Api_Key"];
+				return $row["Api_Key"];
 			} else {
-				$apiKey = null;
+				return null;
 			}
-		}
+		})();
 		$providedSignature = $input->signature;
 		$calculatedSignature =  hash("sha512", $data.$apiKey, false);
 		return ($providedSignature === $calculatedSignature);
