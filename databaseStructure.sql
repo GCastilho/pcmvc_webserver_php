@@ -1,7 +1,7 @@
 CREATE DATABASE telemetryProject;
 use telemetryProject;
 
-CREATE TABLE Credentials (
+CREATE TABLE Credential (
 	RA bigint NOT NULL UNIQUE,
 	Api_Key varchar(30) NOT NULL,
 	PRIMARY KEY (RA)
