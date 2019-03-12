@@ -1,7 +1,6 @@
 <?php
 	class DatabaseConnection {
 		private $conn = null;
-		//TODO: Avoid SQL injection
 		
 		function __construct() {
 			$servername = "localhost";
@@ -18,8 +17,12 @@
 			}
 		}
 
-		function query($sql) {
-			return $this->conn->query($sql);
+		function secureQuery($query, $values) {
+			$stmt = $this->conn->prepare($query);
+			$stmt->bind_param(...$values);
+			$success = $stmt->execute();
+			$result = $stmt->get_result();
+			return $success && is_bool($result) ? true : $result;
 		}
 
 		function __destruct() {

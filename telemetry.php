@@ -3,16 +3,15 @@
 	$min_version = 0.1;
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$input = json_decode(file_get_contents("php://input"));
+		//TODO: Adicionar um verificador se o objeto do input segue o padrão q deve seguir
 		if ($input->data->version < $min_version) {
-			echo "Min protocol version is $min_version";
+			echo "Error: Min protocol version is $min_version";
 			return;
-			//replace with sending ONLY a specific status code
 		}
-		//print_r($input);
 		if (validateInputSignature($input)) {
 			appendTelemetry($input->data->RA, $input->data->telemetry);
 		} else {
-			echo "Fail to autenticate user, check your API Key\n";
+			echo "Fail to verify message signature, check your API Key\n";
 		}
 	}
 
@@ -21,8 +20,9 @@
 		$RA = $input->data->RA;
 		$apiKey = (function() use ($RA) {
 			$database = new DatabaseConnection();
-			$result = $database->query("SELECT Api_Key FROM Credentials WHERE RA = $RA;");
-			// get data of first row
+			$result = $database->secureQuery("SELECT Api_Key FROM Credentials
+				WHERE RA = ?;", array("i", $RA));
+			//Get only first row data
 			if ($result->num_rows > 0 && $row = $result->fetch_assoc()) {
 				return $row["Api_Key"];
 			} else {
@@ -41,13 +41,16 @@
 		$errors_num = 0;
 		foreach ($telemetryArray as $telemetryArray => $telemetry) {
 			$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, windVelocity)
-			VALUES ('$RA',
-			'$telemetry->timestamp',
-			'$telemetry->latitude',
-			'$telemetry->longitude',
-			'$telemetry->windVelocity')";
+				VALUES (?, ?, ?, ?, ?)";
 
-			if ($database->query($sql) === TRUE) {
+			$values = array('issss',
+				$RA,
+				$telemetry->timestamp,
+				$telemetry->latitude,
+				$telemetry->longitude,
+				$telemetry->windVelocity);
+
+			if ($database->secureQuery($sql, $values) === TRUE) {
 				$succeeded_num++;
 			} else {
 				$errors_num++;
