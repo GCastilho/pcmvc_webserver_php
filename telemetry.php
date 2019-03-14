@@ -3,10 +3,16 @@
 	$min_version = 0.1;
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$input = json_decode(file_get_contents("php://input"));
-		//TODO: Adicionar um verificador se o objeto do input segue o padrão q deve seguir
-		if ($input->data->version < $min_version) {
-			echo "Error: Min protocol version is $min_version";
-			return;
+		//Verificador se o objeto do input segue o padrão q deve seguir
+		if (! property_exists($input, 'signature') ||
+			! property_exists($input->data, 'version') ||
+			! property_exists($input->data, 'RA') ||
+			! property_exists($input->data, 'telemetry') ||
+			! is_array($input->data->telemetry) ||
+			$input->data->version < $min_version
+		) {
+			echo "Error: Required protocol versions $min_version or higher";
+			die();
 		}
 		if (validateInputSignature($input)) {
 			appendTelemetry($input->data->RA, $input->data->telemetry);
@@ -40,20 +46,30 @@
 		$succeeded_num = 0;
 		$errors_num = 0;
 		foreach ($telemetryArray as $telemetryArray => $telemetry) {
-			$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, windVelocity)
+			//Verifica se o objeto da telemetria tem as propriedades corretas
+			if (property_exists($telemetry, 'timestamp') &&
+				property_exists($telemetry, 'latitude') &&
+				property_exists($telemetry, 'longitude') &&
+				property_exists($telemetry, 'windVelocity')
+			) {
+				$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, windVelocity)
 				VALUES (?, ?, ?, ?, ?)";
 
-			$values = array('issss',
-				$RA,
-				$telemetry->timestamp,
-				$telemetry->latitude,
-				$telemetry->longitude,
-				$telemetry->windVelocity);
+				$values = array('issss',
+					$RA,
+					$telemetry->timestamp,
+					$telemetry->latitude,
+					$telemetry->longitude,
+					$telemetry->windVelocity);
 
-			if ($database->secureQuery($sql, $values) === TRUE) {
-				$succeeded_num++;
+				if ($database->secureQuery($sql, $values) === TRUE) {
+					$succeeded_num++;
+				} else {
+					$errors_num++;
+				}
 			} else {
 				$errors_num++;
+				echo "Error on TelemetryArray: telemetry object does not follow the protocol standard\n";
 			}
 		}
 		echo "$succeeded_num records created successfully in database\n$errors_num errors\n";
