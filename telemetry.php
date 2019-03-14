@@ -2,8 +2,13 @@
 	include 'databaseConnection.php';
 	$min_version = 0.1;
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+		//Decode JSON input, die if fail
 		$input = json_decode(file_get_contents("php://input"));
-		//Verificador se o objeto do input segue o padrão q deve seguir
+		if ($input === null) {
+			echo "Error decoding JSON input";
+			die();
+		}
+		//Check if input object follows protocol standards
 		if (! property_exists($input, 'signature') ||
 			! property_exists($input->data, 'version') ||
 			! property_exists($input->data, 'RA') ||
@@ -14,14 +19,14 @@
 			echo "Error: Required protocol versions $min_version or higher";
 			die();
 		}
-		if (validateInputSignature($input)) {
+		if (validInputSignature($input)) {
 			appendTelemetry($input->data->RA, $input->data->telemetry);
 		} else {
 			echo "Fail to verify message signature, check your API Key\n";
 		}
 	}
 
-	function validateInputSignature($input) {
+	function validInputSignature($input) {
 		$data = json_encode($input->data);
 		$RA = $input->data->RA;
 		$apiKey = (function() use ($RA) {
@@ -46,7 +51,7 @@
 		$succeeded_num = 0;
 		$errors_num = 0;
 		foreach ($telemetryArray as $telemetryArray => $telemetry) {
-			//Verifica se o objeto da telemetria tem as propriedades corretas
+			//Check if telemetry object follows protocol standards
 			if (property_exists($telemetry, 'timestamp') &&
 				property_exists($telemetry, 'latitude') &&
 				property_exists($telemetry, 'longitude') &&
@@ -62,14 +67,14 @@
 					$telemetry->longitude,
 					$telemetry->windVelocity);
 
-				if ($database->secureQuery($sql, $values) === TRUE) {
+				if ($database->secureQuery($sql, $values) === true) {
 					$succeeded_num++;
 				} else {
 					$errors_num++;
 				}
 			} else {
 				$errors_num++;
-				echo "Error on TelemetryArray: telemetry object does not follow the protocol standard\n";
+				echo "Error on TelemetryArray: telemetry object does not follow the protocol standards\n";
 			}
 		}
 		echo "$succeeded_num records created successfully in database\n$errors_num errors\n";
