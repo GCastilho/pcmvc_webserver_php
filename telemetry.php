@@ -4,10 +4,7 @@
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		//Decode JSON input, die if fail
 		$input = json_decode(file_get_contents("php://input"));
-		if ($input === null) {
-			echo "Error decoding JSON input";
-			die();
-		}
+		if ($input === null) die("Error decoding JSON input");
 		//Check if input object follows protocol standards
 		if (! property_exists($input, 'signature') ||
 			! property_exists($input->data, 'version') ||
@@ -16,13 +13,12 @@
 			! is_array($input->data->telemetry) ||
 			$input->data->version < $min_version
 		) {
-			echo "Error: Required protocol versions $min_version or higher";
-			die();
+			die("Error: Required protocol versions $min_version or higher");
 		}
 		if (validInputSignature($input)) {
 			appendTelemetry($input->data->RA, $input->data->telemetry);
 		} else {
-			echo "Fail to verify message signature, check your API Key\n";
+			die("Fail to verify message signature, check your API Key");
 		}
 	}
 
@@ -40,6 +36,7 @@
 				return null;
 			}
 		})();
+		if ($apiKey === null) return false;	//Prevents a null API key on DB to be valid
 		$providedSignature = $input->signature;
 		$calculatedSignature =  hash("sha512", $data.$apiKey, false);
 		return ($providedSignature === $calculatedSignature);
@@ -74,7 +71,7 @@
 				}
 			} else {
 				$errors_num++;
-				echo "Error on TelemetryArray: telemetry object does not follow the protocol standards\n";
+				echo "Error on TelemetryArray: telemetry object does not follow protocol standards\n";
 			}
 		}
 		echo "$succeeded_num records created successfully in database\n$errors_num errors\n";
