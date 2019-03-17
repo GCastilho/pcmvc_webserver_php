@@ -27,7 +27,7 @@
 		$RA = $input->data->RA;
 		$apiKey = (function() use ($RA) {
 			$database = new DatabaseConnection();
-			$result = $database->secureQuery("SELECT Api_Key FROM Credentials
+			$result = $database->secureQuery("SELECT Api_Key FROM Aluno
 				WHERE RA = ?;", array("i", $RA));
 			//Get only first row data
 			if ($result->num_rows > 0 && $row = $result->fetch_assoc()) {
@@ -36,7 +36,7 @@
 				return null;
 			}
 		})();
-		if ($apiKey === null) return false;	//Prevents a null API key on DB to be valid
+		if ($apiKey === null) return false;
 		$providedSignature = $input->signature;
 		$calculatedSignature =  hash("sha512", $data.$apiKey, false);
 		return ($providedSignature === $calculatedSignature);

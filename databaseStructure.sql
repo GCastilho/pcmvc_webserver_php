@@ -1,7 +1,7 @@
 CREATE DATABASE telemetryProject;
 use telemetryProject;
 
-CREATE TABLE Credential (
+CREATE TABLE Aluno (
 	RA bigint NOT NULL UNIQUE,
 	Api_Key varchar(30) NOT NULL,
 	PRIMARY KEY (RA)
@@ -14,5 +14,5 @@ CREATE TABLE Telemetry (
 	Longitude varchar(11) NOT NULL,
 	windVelocity float(5),
 
-	FOREIGN KEY(RA)	REFERENCES credentials(RA)
+	FOREIGN KEY(RA)	REFERENCES Aluno(RA)
 );
