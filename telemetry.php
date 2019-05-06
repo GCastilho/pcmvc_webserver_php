@@ -1,30 +1,34 @@
 <?php
 	include 'databaseConnection.php';
-	$min_version = 0.1;
+	$min_version = 0.4;
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-		//Decode JSON input, die if fail
-		$input = json_decode(file_get_contents("php://input"));
-		if ($input === null) die("Error decoding JSON input");
-		//Check if input object follows protocol standards
-		if (! property_exists($input, 'signature') ||
-			! property_exists($input->data, 'version') ||
-			! property_exists($input->data, 'RA') ||
-			! property_exists($input->data, 'telemetry') ||
-			! is_array($input->data->telemetry) ||
-			$input->data->version < $min_version
+		//Decode PSV input, die if fail
+		$input = explode("|", file_get_contents("php://input"));
+		if ($input[0] === null || $input[1] === null) die ("Error decoding input");
+		$message = json_decode($input[0]);
+		$signature = $input[1];
+
+		//Check if messa follows protocol standards
+		if (! property_exists($message, 'version') ||
+			! property_exists($message, 'RA') ||
+			! property_exists($message, 'lat') ||
+			! property_exists($message, 'lon') ||
+			! property_exists($message, 'hgt') ||
+			! property_exists($message, 'wind') ||
+			$message->version < $min_version
 		) {
-			die("Error: Required protocol versions $min_version or higher");
+			die ("Error: Required protocol versions $min_version or higher");
 		}
-		if (validInputSignature($input)) {
-			appendTelemetry($input->data->RA, $input->data->telemetry);
+		if (validInputSignature($input[0], $signature)) {
+			appendTelemetry($message);
 		} else {
-			die("Fail to verify message signature, check your API Key");
+			die ("Fail to verify message signature, check your API Key");
 		}
 	}
 
-	function validInputSignature($input) {
-		$data = json_encode($input->data);
-		$RA = $input->data->RA;
+	function validInputSignature($message, $signature) {
+		$data = json_decode($message);
+		$RA = $data->RA;
 		$apiKey = (function() use ($RA) {
 			$database = new DatabaseConnection();
 			$result = $database->secureQuery("SELECT Api_Key FROM Aluno
@@ -37,43 +41,28 @@
 			}
 		})();
 		if ($apiKey === null) return false;
-		$providedSignature = $input->signature;
-		$calculatedSignature =  hash("sha512", $data.$apiKey, false);
-		return ($providedSignature === $calculatedSignature);
+		$calculatedSignature =  hash("sha256", $message.$apiKey, false);
+		return ($signature === $calculatedSignature);
 	}
 
-	function appendTelemetry($RA, $telemetryArray) {
+	function appendTelemetry($message) {
 		$database = new DatabaseConnection();
-		
-		$succeeded_num = 0;
-		$errors_num = 0;
-		foreach ($telemetryArray as $telemetryArray => $telemetry) {
-			//Check if telemetry object follows protocol standards
-			if (property_exists($telemetry, 'timestamp') &&
-				property_exists($telemetry, 'latitude') &&
-				property_exists($telemetry, 'longitude') &&
-				property_exists($telemetry, 'windVelocity')
-			) {
-				$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, windVelocity)
-				VALUES (?, ?, ?, ?, ?)";
 
-				$values = array('issss',
-					$RA,
-					$telemetry->timestamp,
-					$telemetry->latitude,
-					$telemetry->longitude,
-					$telemetry->windVelocity);
+		$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, windVelocity)
+		VALUES (?, ?, ?, ?, ?)";
 
-				if ($database->secureQuery($sql, $values) === true) {
-					$succeeded_num++;
-				} else {
-					$errors_num++;
-				}
-			} else {
-				$errors_num++;
-				echo "Error on TelemetryArray: telemetry object does not follow protocol standards\n";
-			}
+		$values = array('issss',
+			$message->RA,
+			0, //TODO: Striger pra adicionar timestamp automaticamente
+			$message->lat,
+			$message->lon,
+			//TODO: Adicionar hgt
+			$message->wind);
+
+		if ($database->secureQuery($sql, $values) === true) {
+			echo "Successfully inserted telemetry in database";
+		} else {
+			echo "Error while inserting telemetry into database";
 		}
-		echo "$succeeded_num records created successfully in database\n$errors_num errors\n";
 	}
 ?>
