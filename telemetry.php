@@ -4,25 +4,32 @@
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		//Decode PSV input, die if fail
 		$input = explode("|", file_get_contents("php://input"));
-		if ($input[0] === null || $input[1] === null) die ("Error decoding input");
 		$message = json_decode($input[0]);
 		$signature = $input[1];
+		if ($message === null || $signature === null) die ("Error decoding input");
 
-		//Check if messa follows protocol standards
-		if (! property_exists($message, 'version') ||
-			! property_exists($message, 'RA') ||
-			! property_exists($message, 'lat') ||
-			! property_exists($message, 'lon') ||
-			! property_exists($message, 'hgt') ||
-			! property_exists($message, 'wind') ||
-			$message->version < $min_version
-		) {
-			die ("Error: Required protocol versions $min_version or higher");
-		}
-		if (validInputSignature($input[0], $signature)) {
-			appendTelemetry($message);
+		if ($message->version >= $min_version) {
+			if (validInputProtocol($message, $message->version)) {
+				if (validInputSignature($input[0], $signature)) {
+					appendTelemetry($message);
+				} else die ("Error: Fail to verify message signature, check your API Key");
+			} else die ("Error: Message uses protocol version $message->version but does not follow it's standards");
+		} else die ("Error: Required protocol versions $min_version or higher");
+	}
+
+	// Função para permitir múltiplas versões do protocolo ao mesmo tempo
+	// para manter retrocompatibilidade (nota que a appendTelemetry() tbm
+	// deve oferecer suporte para as versões acima da min_version)
+	function validInputProtocol($message, $version) {
+		if ($version === 0.4) {
+			return property_exists($message, 'RA') &&
+				property_exists($message, 'lat') &&
+				property_exists($message, 'lon') &&
+				property_exists($message, 'hgt') &&
+				property_exists($message, 'wind')
+			? true : false;
 		} else {
-			die ("Fail to verify message signature, check your API Key");
+			die ("Unreconized protocol version");
 		}
 	}
 
@@ -48,15 +55,15 @@
 	function appendTelemetry($message) {
 		$database = new DatabaseConnection();
 
-		$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, windVelocity)
-		VALUES (?, ?, ?, ?, ?)";
+		$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, Altura, windVelocity)
+		VALUES (?, ?, ?, ?, ?, ?)";
 
-		$values = array('issss',
+		$values = array('isssss',
 			$message->RA,
-			0, //TODO: Striger pra adicionar timestamp automaticamente
+			time(),
 			$message->lat,
 			$message->lon,
-			//TODO: Adicionar hgt
+			$message->hgt,
 			$message->wind);
 
 		if ($database->secureQuery($sql, $values) === true) {

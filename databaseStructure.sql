@@ -12,6 +12,7 @@ CREATE TABLE Telemetry (
 	timestamp int(10) NOT NULL,
 	Latitude varchar(11) NOT NULL,
 	Longitude varchar(11) NOT NULL,
+	Altura float(5) NOT NULL,
 	windVelocity float(5),
 
 	FOREIGN KEY(RA)	REFERENCES Aluno(RA)
