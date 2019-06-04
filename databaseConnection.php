@@ -4,8 +4,8 @@
 		
 		function __construct() {
 			$servername = "localhost";
-			$username = "root";
-			$password = "";
+			$username = "telemetry_server";
+			$password = "kPI6dBZLbRVbPT2P0Q7M";
 			$dbname = "telemetryProject";
 
 			// Create connection

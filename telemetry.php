@@ -1,12 +1,14 @@
 <?php
 	include 'databaseConnection.php';
-	$min_version = 0.4;
+	$min_version = 1.0;
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		//Decode PSV input, die if fail
 		$input = explode("|", file_get_contents("php://input"));
 		$message = json_decode($input[0]);
 		$signature = $input[1];
 		if ($message === null || $signature === null) die ("Error decoding input");
+
+		//die("Server not receiving inputs at the moment");
 
 		if ($message->version >= $min_version) {
 			if (validInputProtocol($message, $message->version)) {
@@ -21,13 +23,12 @@
 	// para manter retrocompatibilidade (nota que a appendTelemetry() tbm
 	// deve oferecer suporte para as versões acima da min_version)
 	function validInputProtocol($message, $version) {
-		if ($version === 0.4) {
+		if ($version === 1.0) {
 			return property_exists($message, 'RA') &&
 				property_exists($message, 'lat') &&
 				property_exists($message, 'lon') &&
 				property_exists($message, 'hgt') &&
-				property_exists($message, 'wind')
-			? true : false;
+				property_exists($message, 'wind');
 		} else {
 			die ("Unreconized protocol version");
 		}
@@ -38,24 +39,24 @@
 		$RA = $data->RA;
 		$apiKey = (function() use ($RA) {
 			$database = new DatabaseConnection();
-			$result = $database->secureQuery("SELECT Api_Key FROM Aluno
-				WHERE RA = ?;", array("i", $RA));
+			$result = $database->secureQuery("SELECT api_key FROM aluno
+				WHERE matricula = ?;", array("i", $RA));
 			//Get only first row data
 			if ($result->num_rows > 0 && $row = $result->fetch_assoc()) {
-				return $row["Api_Key"];
+				return $row["api_key"];
 			} else {
 				return null;
 			}
 		})();
 		if ($apiKey === null) return false;
-		$calculatedSignature =  hash("sha256", $message.$apiKey, false);
+		$calculatedSignature = hash("sha256", $message.$apiKey, false);
 		return ($signature === $calculatedSignature);
 	}
 
 	function appendTelemetry($message) {
 		$database = new DatabaseConnection();
 
-		$sql = "INSERT INTO Telemetry (RA, timestamp, latitude, longitude, Altura, windVelocity)
+		$sql = "INSERT INTO telemetry (matricula, timestamp, latitude, longitude, altura, wind_velocity)
 		VALUES (?, ?, ?, ?, ?, ?)";
 
 		$values = array('isssss',
