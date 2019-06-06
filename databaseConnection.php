@@ -17,6 +17,10 @@
 			}
 		}
 
+		function query($sql) {
+			return $this->conn->query($sql);
+		}
+
 		function secureQuery($query, $values) {
 			$stmt = $this->conn->prepare($query);
 			$stmt->bind_param(...$values);
