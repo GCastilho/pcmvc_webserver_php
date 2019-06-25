@@ -1,5 +1,5 @@
 <?php
-	include 'databaseConnection.php';
+	include 'database/databaseConnection.php';
 	$database = new DatabaseConnection();
 	$result=$database->query("select * from telemetry");
 

@@ -1,32 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<title>TelemetryProject</title>
-</head>
-<body>
-	<?php if ($_SERVER["REQUEST_METHOD"] == "GET") { ?>
-		<form method="get" action="api.php">
-			<button type="submit">Get telemetry data</button>
-		</form>
-		<form action="" method="post">
-			Username: <input name="username" type="text">
-			Password: <input name="password" type="password">
-			<input type="submit" value="Login">
-		</form>
-	<?php } else if($_SERVER["REQUEST_METHOD"] == "POST") {
-		include 'databaseConnection.php';
-		
+<?php
+	if ($_SERVER["REQUEST_METHOD"] == "POST") {
+		include '../database/databaseConnection.php';
+
 		$username = test_input($_POST["username"]);
 		$password = test_input($_POST["password"]);
 		if(validCredentials($username, $password)) {
-			echo "Bem-vindo, $username";
-			echo "The authentication works!";
+			$database = new DatabaseConnection();
+			setcookie("sessionID", $database->makeCookie($username));
+			header('Location: .');	// Redireciona para o index da /dashboard
+			exit();
 		} else {
 			die("Invalid username or password!");
 		}
+	} else {
+		header('Location: /');
 	}
-	
+
 	function test_input($data) {
 		$data = trim($data);
 		$data = stripslashes($data);
@@ -54,6 +43,5 @@
 		} else {
 			return false;
 		}
-	} ?>
-</body>
-</html>
+	}
+?>

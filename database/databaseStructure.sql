@@ -28,3 +28,8 @@ CREATE TABLE telemetry (
 
 	FOREIGN KEY(matricula) REFERENCES api_credential(matricula)
 );
+
+CREATE TABLE cookie (
+	username VARCHAR(20),
+	sessionID VARCHAR(128) UNIQUE
+);

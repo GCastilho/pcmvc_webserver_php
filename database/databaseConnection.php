@@ -29,6 +29,21 @@
 			return $success && is_bool($result) ? true : $result;
 		}
 
+		function makeCookie($username) {
+			$sessionID = hash("sha512", $username.uniqid(rand(), true), false);
+			return $this->query("INSERT INTO cookie(username, sessionID)
+				VALUES(\"$username\", \"$sessionID\")"
+			) ? $sessionID : header('HTTP/1.1 500 Internal Server Error');
+		}
+
+		function validCookie($cookie) {
+			$result = $this->query("SELECT sessionID FROM cookie
+				WHERE sessionID = \"$cookie\"");
+			/*	Se existir uma linha no result, é porque ele achou aquele
+				sessionID específico, portanto é um sessionID válido //*/
+			return $result->num_rows > 0;
+		}
+
 		function __destruct() {
 			$this->conn->close();
 		}

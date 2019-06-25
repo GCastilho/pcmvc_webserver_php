@@ -1,5 +1,5 @@
 <?php
-	include 'databaseConnection.php';
+	include 'database/databaseConnection.php';
 	$min_version = 1.0;
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		//Decode PSV input, die if fail
