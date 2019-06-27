@@ -1,0 +1,38 @@
+header h1 {
+	text-align: center;
+}
+
+.welcome_message p {
+	margin: 0px;
+}
+
+.top_bar {
+	width: 100%;
+	height: 50px;
+}
+
+.nav_bar * {
+	display:none; /* temp */
+	text-decoration: none;
+}
+
+.dashboard_login p {
+	text-align: right;
+	margin: 1px;
+}
+
+.container {
+	min-width: 960px;
+	width: 70%;
+	margin: 0 auto;
+}
+
+.filtros_parciais {
+	float: left;
+	width: 50%;
+}
+
+.sem_filtros {
+	float: right;
+	width: 50%;
+}

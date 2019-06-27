@@ -7,6 +7,7 @@
 		if(validCredentials($username, $password)) {
 			$database = new DatabaseConnection();
 			setcookie("sessionID", $database->makeCookie($username));
+			header("HTTP/1.1 303 See Other");
 			header('Location: .');	// Redireciona para o index da /dashboard
 			exit();
 		} else {
