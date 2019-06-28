@@ -4,6 +4,10 @@
 		<meta charset="utf-8">
 		<link rel="stylesheet" type="text/css" href="root/index.css">
 		<title>TelemetryProject</title>
+		<?php
+			include 'database/databaseConnection.php';
+			$database = new DatabaseConnection();
+		?>
 	</head>
 
 	<body>
@@ -13,27 +17,44 @@
 			<div class="top_bar">
 				<div class="top_bar_left" style="float: left">
 					<div class="welcome_message">
-							<p>Bem vindo, visitante</p>
+						<?php $username = isset($_COOKIE["sessionID"]) ? $database->getUser($_COOKIE["sessionID"]) : null ?>
+						<p>Bem vindo, <?php echo is_null($username) ? 'visitante' : $username ?></p>
 					</div>
 					<div class="nav_bar">
 						<a href="#">Home</a>
+						<?php if (!is_null($username)) { ?>
+							<a href="#">Dasboard</a>
+						<?php } ?>
 						<a href="#">Sobre</a>
 					</div>
 					
 				</div>
-		
-				<div style="float: right" class="dashboard_login">
-					<p>Login to dashboard</p>
-					<form action="dashboard/login.php" method="post">
-						Username: <input name="username" type="text">
-						Password: <input name="password" type="password">
-						<input type="submit" value="Login">
-					</form>
+
+				<div style="float:right" class="dashboard_login">
+					<?php if (is_null($username)) { ?>
+						<p>Login to dashboard</p>
+						<form action="dashboard/login.php" method="post">
+							Username: <input name="username" type="text">
+							Password: <input name="password" type="password">
+							<input type="submit" value="Login">
+						</form>
+					<?php } else { ?>
+						<p>Você está logado</p>
+						<input type="button" value="Logout" onclick="logout()">
+
+						<script>
+							function logout() {
+								document.cookie = "sessionID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+								location.reload();
+							}
+						</script>
+					<?php } ?>
 				</div>
+
 			</div>
 		</header>
 		
-		<div style="clear: both" class="container">
+		<div style="clear:both" class="container">
 			<div class="telemetry_collect">
 				<h2>Coletar dados de telemetria</h2>
 				<h4>Filtros: (deixe em branco para não aplicar filtros)</h4>

@@ -12,7 +12,7 @@ header h1 {
 }
 
 .nav_bar * {
-	display:none; /* temp */
+	/*display:none; /* temp */
 	text-decoration: none;
 }
 

@@ -6,7 +6,7 @@
 		$password = test_input($_POST["password"]);
 		if(validCredentials($username, $password)) {
 			$database = new DatabaseConnection();
-			setcookie("sessionID", $database->makeCookie($username));
+			setcookie("sessionID", $database->makeCookie($username), 0, '/');
 			header("HTTP/1.1 303 See Other");
 			header('Location: .');	// Redireciona para o index da /dashboard
 			exit();
