@@ -1,4 +1,10 @@
 <?php
+	/* O arduino irá procurar por um arquivo em 'host:80/telemetry.php
+	como definido no arquivo 'network.cpp', função 'post'
+		"client->println("POST /telemetry.php HTTP/1.1");"
+	Lembrando que alterar a localização do .cpp não muda o código que já está rodando
+	em outros arduinos, então tenha em mente que vc deverá manter eles compatíveis //*/
+
 	include 'database/databaseConnection.php';
 	$min_version = 1.0;
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -20,7 +26,7 @@
 	}
 
 	// Função para permitir múltiplas versões do protocolo ao mesmo tempo
-	// para manter retrocompatibilidade (nota que a appendTelemetry() tbm
+	// para manter retrocompatibilidade (note que a appendTelemetry() tbm
 	// deve oferecer suporte para as versões acima da min_version)
 	function validInputProtocol($message, $version) {
 		if ($version === 1.0) {

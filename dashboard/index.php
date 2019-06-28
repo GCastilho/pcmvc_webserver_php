@@ -3,7 +3,7 @@
 	include '../database/databaseConnection.php';
 	$database = new DatabaseConnection();
 
-	if (!$database->validCookie($_COOKIE['sessionID'])) {
+	if (!$database->getUser($_COOKIE['sessionID'])) {
 		header('Location: /');
 		die();
 	};

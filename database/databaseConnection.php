@@ -36,12 +36,13 @@
 			) ? $sessionID : header('HTTP/1.1 500 Internal Server Error');
 		}
 
-		function validCookie($cookie) {
-			$result = $this->query("SELECT sessionID FROM cookie
+		function getUser($cookie) {
+			$result = $this->query("SELECT username,sessionID FROM cookie
 				WHERE sessionID = \"$cookie\"");
-			/*	Se existir uma linha no result, é porque ele achou aquele
-				sessionID específico, portanto é um sessionID válido //*/
-			return $result->num_rows > 0;
+			/* Pega o primeiro resultado; só é pra existir 1 resultado;
+				se um cookie não for encontrado retorna null //*/
+			$row = $result->fetch_assoc();
+			return $row["username"];
 		}
 
 		function __destruct() {
