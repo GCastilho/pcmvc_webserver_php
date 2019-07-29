@@ -68,46 +68,48 @@
 		$result=$database->secureQuery($SqlQuery, array_merge(array($bindParameters), $SqlValues));
 	}
 
-	// create var to be filled with export data
-	$csv_export = '';
+	// create var to be filled with header data
+	$csv_header = '';
 
 	// create line with field names
-	$csv_export.='matricula,';
-	$csv_export.='timestamp,';
-	$csv_export.='data,';
-	$csv_export.='hora,';
-	$csv_export.='latitude,';
-	$csv_export.='longitude,';
-	$csv_export.='altura,';
-	$csv_export.='velocidade_vento;';
+	$csv_header.='matricula,';
+	$csv_header.='timestamp,';
+	$csv_header.='data,';
+	$csv_header.='hora,';
+	$csv_header.='latitude,';
+	$csv_header.='longitude,';
+	$csv_header.='altura,';
+	$csv_header.='velocidade_vento;';
 
 	// newline (seems to work both on Linux & Windows servers)
-	$csv_export.= '
+	$csv_header.= '
 ';
 
-	if ($result->num_rows > 0) {
-		while ($row = $result->fetch_assoc()) {
-			$csv_export.=$row["matricula"].',';
-			{
-				$date->setTimestamp($row["timestamp"]);
-				$csv_export.=$row["timestamp"].',';
-				$csv_export.=$date->format('Y/m/d'.',');
-				$csv_export.=$date->format('H:i:s').',';
-			}
-			$csv_export.=$row["latitude"].',';
-			$csv_export.=$row["longitude"].',';
-			$csv_export.=$row["altura"].',';
-			$csv_export.=$row["wind_velocity"].';';
-			$csv_export.= '
-';
-		}
-	}
-
-	// Export the data and prompt a csv file for download
+	// Start sending the data by prompting a csv file for download
 	$csv_filename = 'db_export_'.date('Y-m-d').'.csv';
 
 	header("Content-type: text/x-csv");
 	header("Content-Disposition: attachment; filename=".$csv_filename."");
-	echo($csv_export);
+	echo($csv_filename);
+
+	// Start sending the data, line by line, as the query is processed
+	if ($result->num_rows > 0) {
+		while ($row = $result->fetch_assoc()) {
+			$csv_data=$row["matricula"].',';
+			{
+				$date->setTimestamp($row["timestamp"]);
+				$csv_data.=$row["timestamp"].',';
+				$csv_data.=$date->format('Y/m/d'.',');
+				$csv_data.=$date->format('H:i:s').',';
+			}
+			$csv_data.=$row["latitude"].',';
+			$csv_data.=$row["longitude"].',';
+			$csv_data.=$row["altura"].',';
+			$csv_data.=$row["wind_velocity"].';';
+			$csv_data.= '
+';
+		echo($csv_data);
+		}
+	}
 
 ?>
