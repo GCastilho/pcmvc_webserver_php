@@ -29,7 +29,7 @@
 		$storedCredentials = (function() use ($username) {
 			$database = new DatabaseConnection();
 			$result = $database->secureQuery("SELECT Salt,Password_Hash
-				FROM Professor WHERE Username = ?;", array("s", $username));
+				FROM person WHERE username = ?;", array("s", $username));
 			if ($result->num_rows > 0 && $row = $result->fetch_assoc()) {
 				return array($row["Salt"], $row["Password_Hash"]);
 			} else {

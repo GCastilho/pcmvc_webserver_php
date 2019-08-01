@@ -90,7 +90,7 @@
 
 	header("Content-type: text/x-csv");
 	header("Content-Disposition: attachment; filename=".$csv_filename."");
-	echo($csv_filename);
+	echo($csv_header);
 
 	// Start sending the data, line by line, as the query is processed
 	if ($result->num_rows > 0) {

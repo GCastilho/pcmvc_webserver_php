@@ -29,7 +29,7 @@
 	// para manter retrocompatibilidade (note que a appendTelemetry() tbm
 	// deve oferecer suporte para as versões acima da min_version)
 	function validInputProtocol($message, $version) {
-		if ($version === 1.0) {
+		if ($version == 1.0) {
 			return property_exists($message, 'RA') &&
 				property_exists($message, 'lat') &&
 				property_exists($message, 'lon') &&
@@ -45,7 +45,7 @@
 		$RA = $data->RA;
 		$apiKey = (function() use ($RA) {
 			$database = new DatabaseConnection();
-			$result = $database->secureQuery("SELECT api_key FROM aluno
+			$result = $database->secureQuery("SELECT api_key FROM api_credential
 				WHERE matricula = ?;", array("i", $RA));
 			//Get only first row data
 			if ($result->num_rows > 0 && $row = $result->fetch_assoc()) {
